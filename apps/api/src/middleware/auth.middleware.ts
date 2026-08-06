@@ -1,9 +1,13 @@
 import { Request, Response, NextFunction } from "express";
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 import { env } from "../config/env.js";
 
 export interface AuthRequest extends Request {
   userId?: string;
+}
+
+interface TokenPayload extends JwtPayload {
+  userId: string;
 }
 
 export function authenticate(
@@ -21,13 +25,24 @@ export function authenticate(
   }
 
   try {
-    const token = authHeader.split(" ")[1];
+    const token = authHeader.substring(7);
 
-    const payload = jwt.verify(token, env.JWT_SECRET) as {
-      userId: string;
-    };
+    const decoded = jwt.verify(
+      token,
+      env.JWT_SECRET!
+    );
 
-    req.userId = payload.userId;
+    if (
+      typeof decoded === "string" ||
+      !("userId" in decoded)
+    ) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid token"
+      });
+    }
+
+    req.userId = (decoded as TokenPayload).userId;
 
     next();
   } catch {
