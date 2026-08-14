@@ -24,11 +24,12 @@
     "format": "turbo run format"
   },
   "devDependencies": {
-    "turbo": "^2.10.8",
-    "typescript": "^5.9.3",
     "@types/node": "^24.0.0",
     "eslint": "^9.0.0",
     "prettier": "^3.0.0",
+    "tsx": "^4.23.12",
+    "turbo": "^2.10.8",
+    "typescript": "^5.9.3",
     "vitest": "^3.0.0"
   }
 }

@@ -12,6 +12,9 @@
     "prisma:studio": "prisma studio"
   },
   "dependencies": {
+    "@ai-os/ai-runtime": "^1.0.0",
+    "@ai-os/config": "^1.0.0",
+    "@ai-os/database": "^1.0.0",
     "@prisma/client": "6.16.0",
     "axios": "^1.11.0",
     "bcrypt": "^6.0.0",

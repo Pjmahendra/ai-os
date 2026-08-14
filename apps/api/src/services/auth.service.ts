@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { prisma } from "../database/prisma.js";
+import { prisma } from "@ai-os/database";
 
 import { env } from "../config/env.js";
 export async function register(

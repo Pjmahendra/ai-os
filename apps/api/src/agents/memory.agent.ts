@@ -1,4 +1,4 @@
-import { prisma } from "../database/prisma.js";
+import { prisma } from "@ai-os/database";
 
 export async function saveMemory(
   userId: string,
