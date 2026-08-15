@@ -22,6 +22,13 @@ export async function runScheduledAutomations() {
         schedule: {
           not: null
         }
+      },
+      include: {
+        user: {
+          select: {
+            timezone: true
+          }
+        }
       }
     });
 
@@ -33,10 +40,14 @@ export async function runScheduledAutomations() {
           continue;
         }
 
+        // Interpret the cron expression in the owning user's local
+        // time, not the server's — "every day at 9am" should mean
+        // 9am for them, wherever the API happens to be deployed.
         const expression = CronExpressionParser.parse(
           automation.schedule,
           {
-            currentDate: now
+            currentDate: now,
+            tz: automation.user.timezone
           }
         );
 

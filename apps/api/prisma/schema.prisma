@@ -13,6 +13,11 @@ model User {
   passwordHash String
   name         String?
 
+  // IANA timezone name (e.g. "America/New_York"). Used by the
+  // scheduler to interpret each of the user's cron schedules in
+  // their own local time rather than the server's.
+  timezone String @default("UTC")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
