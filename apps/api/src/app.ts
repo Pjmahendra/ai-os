@@ -2,8 +2,10 @@ import express from "express";
 import helmet from "helmet";
 import cors from "cors";
 import compression from "compression";
-import morgan from "morgan";
+import { pinoHttp } from "pino-http";
+import rateLimit from "express-rate-limit";
 
+import { logger } from "./config/logger.js";
 import authRoutes from "./routes/auth.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import plannerRoutes from "./routes/planner.routes.js";
@@ -15,6 +17,11 @@ import conversationRoutes from "./routes/conversation.routes.js";
 import { startScheduler } from "./services/scheduler.js";
 const app = express();
 
+// Trust the first hop's X-Forwarded-For (typical single reverse-proxy
+// deployment) so rate limiting keys on the real client IP, not the
+// proxy's.
+app.set("trust proxy", 1);
+
 app.use(helmet());
 app.use(cors());
 app.use(compression());
@@ -22,7 +29,39 @@ app.use(compression());
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 
-app.use(morgan("dev"));
+app.use(
+  pinoHttp({
+    logger,
+    autoLogging: {
+      ignore: (req) => req.url === "/health"
+    }
+  })
+);
+
+// A generous ceiling on every /api route — this is meant to blunt
+// abuse/runaway clients, not to constrain normal use.
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 300,
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+// Auth endpoints are a brute-force/credential-stuffing target and
+// don't need anywhere near the general ceiling.
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    error: "Too many attempts. Please try again later."
+  }
+});
+
+app.use("/api", apiLimiter);
+
 app.use("/api/planner", plannerRoutes);
 app.use("/api/agent", agentRoutes);
 app.use("/api/memory", memoryRoutes);
@@ -36,7 +75,7 @@ app.get("/health", (_, res) => {
   });
 });
 
-app.use("/api/auth", authRoutes);
+app.use("/api/auth", authLimiter, authRoutes);
 app.use("/api/users", userRoutes);
 app.use(
   "/api/automations",
@@ -50,10 +89,11 @@ app.use(
 // Error-handling middleware must be registered after all routes —
 // Express only routes errors to handlers mounted after the route
 // that threw, so this has to stay last.
-app.use((err: any, _req: any, res: any, _next: any) => {
-  console.error("FULL ERROR:");
-  console.error(err);
-  console.error(err?.stack);
+app.use((err: any, req: any, res: any, _next: any) => {
+  (req.log ?? logger).error(
+    { err },
+    "Unhandled request error"
+  );
 
   res.status(500).json({
     success: false,

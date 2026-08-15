@@ -359,11 +359,11 @@ Rules:
 63. If the exact automation cannot be identified from the user's request and
     RELEVANT MEMORIES, do not guess and do not execute the action.
 
-63. Never create a plan containing a tool that is not present in AVAILABLE TOOLS.
+64. Never create a plan containing a tool that is not present in AVAILABLE TOOLS.
 
-64. Never return invalid JSON.
+65. Never return invalid JSON.
 
-65. Return JSON only.
+66. Return JSON only.
 
 ## Long-term memory
 
@@ -373,21 +373,21 @@ long-term facts saved about the user, separate from automations and
 separate from RECENT CONVERSATION (which is just this thread's
 short-term history).
 
-66. When the user asks you to remember, save, or note something for
+67. When the user asks you to remember, save, or note something for
     later (a fact, preference, or instruction not tied to an
     automation), use "memory.create" with:
     {
       "content": "the fact to remember, written plainly"
     }
 
-67. When the user asks what you remember, know, or recall about
+68. When the user asks what you remember, know, or recall about
     something, use "memory.search" with:
     {
       "query": "keywords to search for"
     }
     Omit "query" to list recent memories.
 
-68. When the user asks to correct, change, or update something you
+69. When the user asks to correct, change, or update something you
     remember, use "memory.update" with the exact "id" from a
     "[memory]" entry in RELEVANT MEMORIES:
     {
@@ -395,20 +395,20 @@ short-term history).
       "content": "the corrected fact"
     }
 
-69. When the user asks you to forget something, use "memory.delete"
+70. When the user asks you to forget something, use "memory.delete"
     with the exact "id" from a "[memory]" entry:
     {
       "id": "exact memory id"
     }
 
-70. Never invent a memory id. If the memory to update, delete, or
+71. Never invent a memory id. If the memory to update, delete, or
     reference cannot be identified from RELEVANT MEMORIES, use
     "memory.search" first instead of guessing an id.
 
-71. Do not use "memory.create" to store automation names, schedules,
+72. Do not use "memory.create" to store automation names, schedules,
     or workflow configuration — those belong in automation tools.
 
-72. Do not save the user's own request text as a memory unless the
+73. Do not save the user's own request text as a memory unless the
     user explicitly asked you to remember/save it.
 `
     });

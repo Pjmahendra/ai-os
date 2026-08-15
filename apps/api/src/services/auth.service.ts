@@ -2,7 +2,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { prisma } from "../database/prisma.js";
 
-import { env } from "../config/env.js";
+import { env } from "@ai-os/config";
 export async function register(
   email: string,
   password: string,

@@ -1,5 +1,5 @@
 import app from "./app.js";
-import { env } from "./config/env.js";
+import { env } from "@ai-os/config";
 import { prisma } from "./database/prisma.js";
 import { logger } from "./config/logger.js";
 

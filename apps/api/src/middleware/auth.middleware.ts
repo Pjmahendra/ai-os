@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
-import { env } from "../config/env.js";
+import { env } from "@ai-os/config";
 
 export interface AuthRequest extends Request {
   userId?: string;
