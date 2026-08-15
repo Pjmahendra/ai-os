@@ -1,0 +1,26 @@
+{
+  "name": "@ai-os/ai-planner",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch"
+  },
+  "dependencies": {
+  "@ai-os/ai-runtime": "^1.0.0",
+  "@ai-os/ai-tools": "^1.0.0"
+    },
+  "devDependencies": {
+    "@ai-os/ai-runtime": "^1.0.0",
+    "typescript": "^5.9.2"
+  }
+}

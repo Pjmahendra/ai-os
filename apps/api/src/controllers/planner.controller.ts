@@ -1,13 +1,30 @@
 import { Request, Response } from "express";
-import { createPlan } from "../agents/planner.agent.js";
+import { AIPlanner } from "@ai-os/ai-planner";
 
-export async function planner(req: Request, res: Response) {
-  const { message } = req.body;
+const aiPlanner = new AIPlanner();
 
-  const plan = createPlan(message);
+export async function planner(
+  req: Request,
+  res: Response
+) {
+  try {
+    const { message } = req.body;
 
-  res.json({
-    success: true,
-    plan
-  });
+    const plan = await aiPlanner.createPlan(message);
+
+    res.json({
+      success: true,
+      plan
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Planner failed"
+    });
+  }
 }

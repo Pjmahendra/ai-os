@@ -6,11 +6,13 @@ import morgan from "morgan";
 
 import authRoutes from "./routes/auth.routes.js";
 import userRoutes from "./routes/user.routes.js";
-import chatRoutes from "./routes/chat.routes.js";
 import plannerRoutes from "./routes/planner.routes.js";
 import agentRoutes from "./routes/agent.routes.js";
 import memoryRoutes from "./routes/memory.routes.js";
 import toolRoutes from "./routes/tool.routes.js";
+import automationRoutes from "./routes/automation.routes.js";
+import conversationRoutes from "./routes/conversation.routes.js";
+import { startScheduler } from "./services/scheduler.js";
 const app = express();
 
 app.use(helmet());
@@ -36,10 +38,22 @@ app.get("/health", (_, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
-app.use("/api/chat", chatRoutes);
+app.use(
+  "/api/automations",
+  automationRoutes
+);
+app.use(
+  "/api/conversations",
+  conversationRoutes
+);
 
+// Error-handling middleware must be registered after all routes —
+// Express only routes errors to handlers mounted after the route
+// that threw, so this has to stay last.
 app.use((err: any, _req: any, res: any, _next: any) => {
+  console.error("FULL ERROR:");
   console.error(err);
+  console.error(err?.stack);
 
   res.status(500).json({
     success: false,
@@ -47,4 +61,5 @@ app.use((err: any, _req: any, res: any, _next: any) => {
   });
 });
 
+startScheduler();
 export default app;

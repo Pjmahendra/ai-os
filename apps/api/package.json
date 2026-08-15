@@ -12,14 +12,16 @@
     "prisma:studio": "prisma studio"
   },
   "dependencies": {
+    "@ai-os/ai-planner": "^1.0.0",
     "@ai-os/ai-runtime": "^1.0.0",
+    "@ai-os/ai-tools": "^1.0.0",
     "@ai-os/config": "^1.0.0",
-    "@ai-os/database": "^1.0.0",
     "@prisma/client": "6.16.0",
     "axios": "^1.11.0",
     "bcrypt": "^6.0.0",
     "compression": "^1.8.1",
     "cors": "^2.8.5",
+    "cron-parser": "^5.10.0",
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
     "helmet": "^8.1.0",

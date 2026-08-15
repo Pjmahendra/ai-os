@@ -1,9 +1,15 @@
-import { Request, Response } from "express";
-import { registry } from "../tools/registry.js";
+import { Response } from "express";
+import { AuthRequest } from "../middleware/auth.middleware.js";
+import { toolRegistry } from "../agents/executor.agent.js";
 
 export async function listTools(
-  _req: Request,
+  _req: AuthRequest,
   res: Response
 ) {
-  res.json(registry.list());
+  res.json(
+    toolRegistry.list().map((tool) => ({
+      name: tool.name,
+      description: tool.description
+    }))
+  );
 }

@@ -8,7 +8,12 @@ import type {
 
 interface OllamaResponse {
   readonly model: string;
-  readonly response: string;
+
+  readonly message?: {
+    readonly role: string;
+    readonly content?: string;
+  };
+
   readonly prompt_eval_count?: number;
   readonly eval_count?: number;
 }
@@ -27,54 +32,71 @@ export class OllamaProvider implements LLMProvider {
     });
   }
 
-  async chat(request: LLMRequest): Promise<LLMResponse> {
-  const response = await this.client.post<OllamaResponse>(
-    "/api/chat",
-    {
-      model: this.model,
-      messages: request.messages,
-      stream: false,
-      options: {
-        temperature: request.temperature,
-        num_predict: request.maxTokens
-      }
+  async chat(
+    request: LLMRequest
+  ): Promise<LLMResponse> {
+    const response =
+      await this.client.post<OllamaResponse>(
+        "/api/chat",
+        {
+          model: this.model,
+          messages: request.messages,
+          stream: false,
+          options: {
+            temperature: request.temperature,
+            num_predict: request.maxTokens
+          }
+        }
+      );
+
+    const data = response.data;
+
+    const content = data.message?.content;
+
+    if (
+      typeof content !== "string" ||
+      content.trim().length === 0
+    ) {
+      throw new Error(
+        "Ollama returned an empty assistant response"
+      );
     }
-  );
 
-  const data = response.data;
+    const hasPromptTokens =
+      data.prompt_eval_count !== undefined;
 
-  const hasPromptTokens =
-    data.prompt_eval_count !== undefined;
+    const hasCompletionTokens =
+      data.eval_count !== undefined;
 
-  const hasCompletionTokens =
-    data.eval_count !== undefined;
+    const hasTotalTokens =
+      hasPromptTokens &&
+      hasCompletionTokens;
 
-  const hasTotalTokens =
-    hasPromptTokens && hasCompletionTokens;
+    return {
+      content,
+      model: data.model,
 
-  return {
-    content: data.response,
-    model: data.model,
+      ...(hasPromptTokens
+        ? {
+            promptTokens:
+              data.prompt_eval_count
+          }
+        : {}),
 
-    ...(hasPromptTokens
-      ? {
-          promptTokens: data.prompt_eval_count
-        }
-      : {}),
+      ...(hasCompletionTokens
+        ? {
+            completionTokens:
+              data.eval_count
+          }
+        : {}),
 
-    ...(hasCompletionTokens
-      ? {
-          completionTokens: data.eval_count
-        }
-      : {}),
-
-    ...(hasTotalTokens
-      ? {
-          totalTokens:
-            data.prompt_eval_count! +
-            data.eval_count!
-        }
-      : {})
-  };
-}
+      ...(hasTotalTokens
+        ? {
+            totalTokens:
+              data.prompt_eval_count! +
+              data.eval_count!
+          }
+        : {})
+    };
+  }
 }

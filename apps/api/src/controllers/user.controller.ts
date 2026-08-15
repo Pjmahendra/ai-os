@@ -1,5 +1,5 @@
 import { Response } from "express";
-import { prisma } from "@ai-os/database";
+import { prisma } from "../database/prisma.js";
 import { AuthRequest } from "../middleware/auth.middleware.js";
 
 export async function me(

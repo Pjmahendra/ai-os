@@ -1,6 +1,6 @@
 import app from "./app.js";
 import { env } from "./config/env.js";
-import { prisma } from "@ai-os/database";
+import { prisma } from "./database/prisma.js";
 import { logger } from "./config/logger.js";
 
 async function bootstrap() {
