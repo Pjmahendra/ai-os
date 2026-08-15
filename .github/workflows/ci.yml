@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, ai-os-v1]
   pull_request:
-    branches: [main]
+    branches: [main, ai-os-v1]
 
 # Cancel superseded runs on the same branch/PR.
 concurrency:
