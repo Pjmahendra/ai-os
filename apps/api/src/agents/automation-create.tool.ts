@@ -6,55 +6,7 @@ import type {
 import {
   createAutomation
 } from "../services/automation.service.js";
-
-function normalizeSchedule(
-  scheduleType: unknown,
-  schedule: unknown
-): {
-  scheduleType?: string;
-  schedule?: string;
-} {
-  if (
-    typeof scheduleType !== "string" ||
-    typeof schedule !== "string"
-  ) {
-    return {};
-  }
-
-  // Already a valid cron-style schedule.
-  if (scheduleType === "cron") {
-    return {
-      scheduleType: "cron",
-      schedule
-    };
-  }
-
-  // Convert daily "HH:MM" into 5-field cron.
-  if (scheduleType === "daily") {
-    const match =
-      schedule.match(
-        /^([01]\d|2[0-3]):([0-5]\d)$/
-      );
-
-    if (!match) {
-      throw new Error(
-        `Invalid daily schedule "${schedule}". Expected HH:MM.`
-      );
-    }
-
-    const hour = Number(match[1]);
-    const minute = Number(match[2]);
-
-    return {
-      scheduleType: "cron",
-      schedule: `${minute} ${hour} * * *`
-    };
-  }
-
-  throw new Error(
-    `Unsupported scheduleType "${scheduleType}". Use cron.`
-  );
-}
+import { normalizeCronSchedule } from "../utils/cron-schedule.js";
 
 export class AutomationCreateTool implements Tool {
   readonly name = "automation.create";
@@ -106,7 +58,7 @@ export class AutomationCreateTool implements Tool {
         : {};
 
     const normalized =
-      normalizeSchedule(
+      normalizeCronSchedule(
         data.scheduleType,
         data.schedule
       );

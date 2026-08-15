@@ -6,95 +6,7 @@ import type {
 import {
   updateAutomation
 } from "../services/automation.service.js";
-
-function normalizeSchedule(
-  scheduleType: unknown,
-  schedule: unknown
-): {
-  scheduleType?: string;
-  schedule?: string;
-} {
-  // Nothing related to schedule is being updated.
-  if (
-    scheduleType === undefined &&
-    schedule === undefined
-  ) {
-    return {};
-  }
-
-  // A schedule was supplied without a type.
-  // If it is already a valid 5-field cron expression,
-  // safely assume cron.
-  if (
-    scheduleType === undefined &&
-    typeof schedule === "string"
-  ) {
-    const cronParts = schedule.trim().split(/\s+/);
-
-    if (cronParts.length === 5) {
-      return {
-        scheduleType: "cron",
-        schedule: schedule.trim()
-      };
-    }
-
-    throw new Error(
-      "A schedule without scheduleType must be a valid 5-field cron expression"
-    );
-  }
-
-  if (typeof scheduleType !== "string") {
-    throw new Error(
-      "scheduleType must be a string"
-    );
-  }
-
-  if (typeof schedule !== "string") {
-    throw new Error(
-      "schedule must be a string"
-    );
-  }
-
-  if (scheduleType === "cron") {
-    const cronParts = schedule.trim().split(/\s+/);
-
-    if (cronParts.length !== 5) {
-      throw new Error(
-        `Invalid cron schedule "${schedule}". Expected 5 fields.`
-      );
-    }
-
-    return {
-      scheduleType: "cron",
-      schedule: schedule.trim()
-    };
-  }
-
-  if (scheduleType === "daily") {
-    const match =
-      schedule.match(
-        /^([01]\d|2[0-3]):([0-5]\d)$/
-      );
-
-    if (!match) {
-      throw new Error(
-        `Invalid daily schedule "${schedule}". Expected HH:MM.`
-      );
-    }
-
-    const hour = Number(match[1]);
-    const minute = Number(match[2]);
-
-    return {
-      scheduleType: "cron",
-      schedule: `${minute} ${hour} * * *`
-    };
-  }
-
-  throw new Error(
-    `Unsupported scheduleType "${scheduleType}". Use cron.`
-  );
-}
+import { normalizeCronSchedule } from "../utils/cron-schedule.js";
 
 export class AutomationUpdateTool implements Tool {
   readonly name = "automation.update";
@@ -179,7 +91,7 @@ export class AutomationUpdateTool implements Tool {
     }
 
     const normalized =
-      normalizeSchedule(
+      normalizeCronSchedule(
         data.scheduleType,
         data.schedule
       );
