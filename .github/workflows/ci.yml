@@ -31,7 +31,21 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-          cache: "npm"
+          # Not `cache: "npm"` here - actions/setup-node runs its own
+          # `npm config get cache` internally to set that up, using
+          # whatever npm the runner ships by default (10.x). That
+          # fails immediately against this repo's devEngines pin
+          # (11.4.2) before any of our own steps even run, so the npm
+          # upgrade below has to come first and caching has to be
+          # separate.
+
+      - name: Use the npm version pinned in package.json's devEngines
+        run: npm install -g npm@11.4.2
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: npm-${{ hashFiles('package-lock.json') }}
 
       - name: Install dependencies
         run: npm ci
