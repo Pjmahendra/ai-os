@@ -31,3 +31,9 @@ Thumbs.db
 # Temporary
 tmp/
 temp/
+
+# Local AI-agent tooling metadata (e.g. Neon CLI/skill installs) -
+# not part of the application.
+.neon
+.agents/
+skills-lock.json
