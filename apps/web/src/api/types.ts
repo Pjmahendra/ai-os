@@ -1,0 +1,80 @@
+export interface User {
+  id: string;
+  email: string;
+  name: string | null;
+  timezone: string;
+  createdAt: string;
+}
+
+export interface AuthResult {
+  token: string;
+  user: {
+    id: string;
+    email: string;
+    name: string | null;
+  };
+}
+
+export interface Automation {
+  id: string;
+  userId: string;
+  name: string;
+  workflow: string;
+  config: unknown;
+  enabled: boolean;
+  scheduleType: string | null;
+  schedule: string | null;
+  lastRunAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AutomationExecution {
+  id: string;
+  automationId: string;
+  status: "running" | "success" | "failed" | string;
+  result: unknown;
+  error: string | null;
+  startedAt: string;
+  completedAt: string | null;
+}
+
+export interface Memory {
+  id: string;
+  userId: string;
+  content: string;
+  summary: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Conversation {
+  id: string;
+  userId: string;
+  title: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Message {
+  id: string;
+  conversationId: string;
+  role: "user" | "assistant";
+  content: string;
+  plan: unknown;
+  execution: unknown;
+  createdAt: string;
+}
+
+export interface AgentResponse {
+  success: boolean;
+  conversationId: string;
+  message: string;
+  plan: unknown;
+  execution: unknown;
+}
+
+export interface Tool {
+  name: string;
+  description: string;
+}
