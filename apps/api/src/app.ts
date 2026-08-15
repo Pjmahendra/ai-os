@@ -22,8 +22,21 @@ const app = express();
 // proxy's.
 app.set("trust proxy", 1);
 
+// In production, restrict to the configured frontend origin(s)
+// (comma-separated) instead of allowing every origin. Left permissive
+// by default so local dev keeps working without extra setup.
+const allowedOrigins = process.env.CORS_ORIGIN?.split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
 app.use(helmet());
-app.use(cors());
+app.use(
+  cors(
+    allowedOrigins?.length
+      ? { origin: allowedOrigins }
+      : undefined
+  )
+);
 app.use(compression());
 
 app.use(express.json({ limit: "10mb" }));
