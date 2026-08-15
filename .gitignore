@@ -7,6 +7,13 @@ dist/
 build/
 coverage/
 .next/
+# TypeScript incremental build cache. Committing this while dist/ is
+# gitignored is actively wrong, not just unnecessary: tsc's
+# incremental logic compares against this file's recorded state and
+# concludes "nothing changed since last build" on a fresh clone (where
+# dist/ never existed), so it skips writing dist/ entirely - a build
+# that reports success while silently producing no output.
+**/*.tsbuildinfo
 
 # Environment
 .env
