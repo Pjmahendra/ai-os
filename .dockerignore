@@ -1,0 +1,16 @@
+**/node_modules
+**/dist
+**/.turbo
+**/*.tsbuildinfo
+.git
+.github
+.env
+.env.*
+!.env.example
+
+# apps/web's own source isn't needed to build/run the API image, but
+# its package.json must stay so `npm ci` can still resolve the
+# workspace (npm workspaces expects every member's manifest present).
+apps/web/src
+apps/web/index.html
+apps/web/README.md

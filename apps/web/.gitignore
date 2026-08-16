@@ -1,0 +1,5 @@
+# tsc -b emits compiled output for vite.config.ts (composite project,
+# needed so it can typecheck vite.config.ts) - don't track the output.
+vite.config.js
+vite.config.d.ts
+*.tsbuildinfo

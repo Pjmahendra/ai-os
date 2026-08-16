@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main, ai-os-v1]
+  pull_request:
+    branches: [main, ai-os-v1]
+
+# Cancel superseded runs on the same branch/PR.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    env:
+      # None of the current test suites touch a real database or make
+      # a real network call (LLM providers and n8n are injected/mocked
+      # in every test), but @ai-os/config validates these eagerly at
+      # import time, so tsc's build needs them to exist. Placeholder
+      # values only - never real secrets in CI.
+      DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci"
+      JWT_SECRET: "ci-secret-ci-secret-ci-secret-32-chars-min"
+      OPENROUTER_API_KEY: "ci-placeholder-key"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          # Not `cache: "npm"` here - actions/setup-node runs its own
+          # `npm config get cache` internally to set that up, using
+          # whatever npm the runner ships by default (10.x). That
+          # fails immediately against this repo's devEngines pin
+          # (11.4.2) before any of our own steps even run, so the npm
+          # upgrade below has to come first and caching has to be
+          # separate.
+
+      - name: Use the npm version pinned in package.json's devEngines
+        run: npm install -g npm@11.4.2
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: npm-${{ hashFiles('package-lock.json') }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npx prisma generate --schema apps/api/prisma/schema.prisma
+
+      - name: Build all packages
+        run: npx turbo run build
+
+      - name: Run all tests
+        run: npx turbo run test

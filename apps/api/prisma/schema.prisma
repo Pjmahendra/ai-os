@@ -1,0 +1,109 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String  @id @default(uuid())
+  email        String  @unique
+  passwordHash String
+  name         String?
+
+  // IANA timezone name (e.g. "America/New_York"). Used by the
+  // scheduler to interpret each of the user's cron schedules in
+  // their own local time rather than the server's.
+  timezone String @default("UTC")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  memories      Memory[]
+  automations   Automation[]
+  conversations Conversation[]
+}
+
+model Memory {
+  id      String  @id @default(uuid())
+  userId  String
+  content String
+  summary String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Automation {
+  id       String  @id @default(uuid())
+  userId   String
+  name     String
+  workflow String
+  config   Json
+  enabled  Boolean @default(true)
+
+  scheduleType String?
+  schedule     String?
+  lastRunAt    DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  executions AutomationExecution[]
+
+  @@index([userId])
+  @@unique([userId, name])
+}
+
+model AutomationExecution {
+  id           String    @id @default(uuid())
+  automationId String
+  status       String
+  result       Json?
+  error        String?
+  startedAt    DateTime  @default(now())
+  completedAt  DateTime?
+
+  automation Automation @relation(fields: [automationId], references: [id], onDelete: Cascade)
+
+  @@index([automationId])
+  @@index([startedAt])
+}
+
+model Conversation {
+  id    String  @id @default(uuid())
+  userId String
+  title String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages Message[]
+
+  @@index([userId])
+}
+
+model Message {
+  id             String  @id @default(uuid())
+  conversationId String
+  role           String
+  content        String
+  plan           Json?
+  execution      Json?
+
+  createdAt DateTime @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([createdAt])
+}

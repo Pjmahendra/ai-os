@@ -1,0 +1,40 @@
+{
+  "name": "ai-os",
+  "private": true,
+  "packageManager": "npm@11.4.2",
+  "engines": {
+    "node": "22.x || 24.x"
+  },
+  "devEngines": {
+    "runtime": {
+      "name": "node",
+      "version": "22.x || 24.x",
+      "onFail": "warn"
+    },
+    "packageManager": {
+      "name": "npm",
+      "version": ">=11.4.2",
+      "onFail": "warn"
+    }
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "format": "turbo run format"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "eslint": "^9.0.0",
+    "prettier": "^3.0.0",
+    "tsx": "^4.23.12",
+    "turbo": "^2.10.8",
+    "typescript": "^5.9.3",
+    "vitest": "^3.0.0"
+  }
+}
