@@ -3,12 +3,13 @@
   "private": true,
   "packageManager": "npm@11.4.2",
   "engines": {
-    "node": "22.x"
+    "node": "22.x || 24.x"
   },
   "devEngines": {
     "runtime": {
       "name": "node",
-      "version": "22.x"
+      "version": "22.x || 24.x",
+      "onFail": "warn"
     },
     "packageManager": {
       "name": "npm",
