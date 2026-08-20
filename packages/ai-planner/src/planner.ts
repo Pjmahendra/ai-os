@@ -18,7 +18,7 @@ export class AIPlanner {
       tools,
       memories,
       history,
-      1
+      2
     );
   }
 
