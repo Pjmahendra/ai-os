@@ -49,8 +49,19 @@ export function createLLMProvider(
   }
 
   if (!env.GEMINI_API_KEY) {
+    console.error(
+      "[createLLMProvider] GEMINI_API_KEY is falsy at runtime " +
+        `(typeof=${typeof env.GEMINI_API_KEY}, length=${
+          env.GEMINI_API_KEY ? String(env.GEMINI_API_KEY).length : 0
+        }) - falling back to Ollama directly, no online attempt made.`
+    );
+
     return ollama;
   }
+
+  console.log(
+    `[createLLMProvider] Using Gemini as primary (key length ${env.GEMINI_API_KEY.length}), Ollama as fallback.`
+  );
 
   return new FallbackProvider(
     new GeminiProvider(),
