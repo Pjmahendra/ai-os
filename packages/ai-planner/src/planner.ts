@@ -22,6 +22,72 @@ export class AIPlanner {
     );
   }
 
+  /**
+   * Generates the actual reply text for a plan with intent "answer" —
+   * separate from createPlan, whose job is only to decide *that* no
+   * tool/workflow is needed, not to produce the answer itself. The
+   * planner's `goal` field is an internal task description (e.g.
+   * "Explain what AI is"), never the answer content.
+   */
+  async generateAnswer(
+    userMessage: string,
+    memories: readonly string[] = [],
+    history: readonly ConversationTurn[] = []
+  ): Promise<string> {
+    const memoryContext =
+      memories.length === 0
+        ? "No relevant memories are available."
+        : memories
+            .map((memory) => `- ${memory}`)
+            .join("\n");
+
+    const historyContext =
+      history.length === 0
+        ? "No prior conversation in this thread."
+        : history
+            .map((turn) => `- ${turn.role}: ${turn.content}`)
+            .join("\n");
+
+    const response = await this.runtime.run({
+      message: userMessage,
+
+      conversation: history.map((turn) => ({
+        role: turn.role,
+        content: turn.content
+      })),
+
+      systemPrompt: `
+You are AI-OS, a helpful assistant. Answer the user's message directly
+and conversationally.
+
+RELEVANT MEMORIES (long-term facts saved about the user; use them when
+relevant, don't mention them unless it's natural to do so):
+${memoryContext}
+
+RECENT CONVERSATION (oldest first, for context):
+${historyContext}
+
+Reply in plain text. Do not return JSON.
+`
+    });
+
+    if (
+      !response ||
+      typeof response.content !== "string"
+    ) {
+      console.error(
+        "AIPlanner received invalid runtime response for generateAnswer:",
+        response
+      );
+
+      throw new Error(
+        "AI planner did not return valid text content"
+      );
+    }
+
+    return response.content;
+  }
+
   private async createPlanWithRetry(
     userMessage: string,
     tools: readonly Tool[],

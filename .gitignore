@@ -35,6 +35,9 @@ Thumbs.db
 # Turborepo
 .turbo/
 
+# Vercel CLI project link (machine-local, not shared config)
+.vercel
+
 # Temporary
 tmp/
 temp/
