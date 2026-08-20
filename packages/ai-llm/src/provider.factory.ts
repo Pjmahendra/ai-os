@@ -1,7 +1,7 @@
 import { env } from "@ai-os/config";
 import type { LLMProvider } from "./types.js";
 import { OllamaProvider } from "./providers/ollama.provider.js";
-import { OpenRouterProvider } from "./providers/openrouter.provider.js";
+import { GeminiProvider } from "./providers/gemini.provider.js";
 
 export type LLMMode = "auto" | "online" | "offline";
 
@@ -39,21 +39,21 @@ export function createLLMProvider(
   }
 
   if (mode === "online") {
-    if (!env.OPENROUTER_API_KEY) {
+    if (!env.GEMINI_API_KEY) {
       throw new Error(
-        "OPENROUTER_API_KEY is required for online mode."
+        "GEMINI_API_KEY is required for online mode."
       );
     }
 
-    return new OpenRouterProvider();
+    return new GeminiProvider();
   }
 
-  if (!env.OPENROUTER_API_KEY) {
+  if (!env.GEMINI_API_KEY) {
     return ollama;
   }
 
   return new FallbackProvider(
-    new OpenRouterProvider(),
+    new GeminiProvider(),
     ollama
   );
 }

@@ -1,7 +1,34 @@
 import { prisma } from "../database/prisma.js";
 import { N8NExecuteTool } from "@ai-os/ai-tools";
+import { createNotification } from "./notification.service.js";
 
 const n8nTool = new N8NExecuteTool();
+
+// Best-effort: a failure to write the alert itself should never mask
+// the automation's actual result/error, so this only logs on failure
+// rather than propagating.
+async function notifySafely(
+  userId: string,
+  type: string,
+  title: string,
+  body?: string,
+  data?: unknown
+) {
+  try {
+    await createNotification(
+      userId,
+      type,
+      title,
+      body,
+      data
+    );
+  } catch (error) {
+    console.error(
+      "Failed to create notification:",
+      error
+    );
+  }
+}
 
 export async function executeStoredAutomation(
   userId: string,
@@ -56,6 +83,14 @@ export async function executeStoredAutomation(
       }
     });
 
+    await notifySafely(
+      userId,
+      "automation.success",
+      `"${automation.name}" ran successfully`,
+      undefined,
+      { automationId: automation.id, executionId: execution.id }
+    );
+
     return result;
   } catch (error) {
     const message =
@@ -73,6 +108,14 @@ export async function executeStoredAutomation(
         completedAt: new Date()
       }
     });
+
+    await notifySafely(
+      userId,
+      "automation.failure",
+      `"${automation.name}" failed`,
+      message,
+      { automationId: automation.id, executionId: execution.id }
+    );
 
     throw error;
   }

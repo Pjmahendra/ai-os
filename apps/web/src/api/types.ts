@@ -78,3 +78,14 @@ export interface Tool {
   name: string;
   description: string;
 }
+
+export interface Notification {
+  id: string;
+  userId: string;
+  type: string;
+  title: string;
+  body: string | null;
+  data: unknown;
+  readAt: string | null;
+  createdAt: string;
+}

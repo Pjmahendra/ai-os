@@ -19,8 +19,8 @@ export const ConfigSchema = z.object({
         .string()
         .min(32),
     AI_PROVIDER: z
-        .enum(["openrouter", "ollama"])
-        .default("openrouter"),
+        .enum(["gemini", "ollama"])
+        .default("gemini"),
     OLLAMA_URL: z
         .string()
         .url()
@@ -30,14 +30,14 @@ export const ConfigSchema = z.object({
         .string()
         .min(1)
         .default("qwen3:4b"),
-    OPENROUTER_API_KEY: z
+    GEMINI_API_KEY: z
         .string()
         .min(1),
 
-    OPENROUTER_MODEL: z
+    GEMINI_MODEL: z
         .string()
         .min(1)
-        .default("openrouter/free"),
+        .default("gemini-2.5-flash"),
 });
 
 export type Config = z.infer<typeof ConfigSchema>;

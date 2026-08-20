@@ -7,6 +7,7 @@ import type {
   Conversation,
   Memory,
   Message,
+  Notification,
   Tool,
   User
 } from "./types.js";
@@ -114,4 +115,22 @@ export const memories = {
 
 export const tools = {
   list: () => api.get<Tool[]>("/api/tools")
+};
+
+export const notifications = {
+  list: (unreadOnly?: boolean) =>
+    api.get<{ success: boolean; notifications: Notification[] }>(
+      unreadOnly ? "/api/notifications?unread=true" : "/api/notifications"
+    ),
+
+  unreadCount: () =>
+    api.get<{ success: boolean; count: number }>(
+      "/api/notifications/unread-count"
+    ),
+
+  markRead: (id: string) =>
+    api.patch<{ success: boolean }>(`/api/notifications/${id}/read`),
+
+  markAllRead: () =>
+    api.patch<{ success: boolean }>("/api/notifications/read-all")
 };

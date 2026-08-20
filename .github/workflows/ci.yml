@@ -23,7 +23,7 @@ jobs:
       # values only - never real secrets in CI.
       DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci"
       JWT_SECRET: "ci-secret-ci-secret-ci-secret-32-chars-min"
-      OPENROUTER_API_KEY: "ci-placeholder-key"
+      GEMINI_API_KEY: "ci-placeholder-key"
 
     steps:
       - uses: actions/checkout@v4
