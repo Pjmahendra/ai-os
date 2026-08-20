@@ -17,7 +17,7 @@ Either way, the database is a free hosted Postgres (Neon or Supabase) and the fr
 Vercel. Provider free-tier terms change over time — double check current policy (card
 requirements, usage limits) at signup for whichever you pick.
 
-**Use `AI_PROVIDER=gemini` in production.** The local `ollama` provider needs an Ollama
+**Use `AI_PROVIDER=groq` in production.** The local `ollama` provider needs an Ollama
 server with a model loaded in memory — that won't run on a free, tiny instance. Keep
 `AI_PROVIDER=ollama` in your local `.env` if you use it there; just don't set it in production.
 
@@ -54,9 +54,9 @@ project; just don't be surprised by an occasional slow first request.
    ```
    DATABASE_URL=<your Neon pooled connection string>
    JWT_SECRET=<a long random string, 32+ chars>
-   AI_PROVIDER=gemini
-   GEMINI_API_KEY=<your Gemini key>
-   GEMINI_MODEL=gemini-2.5-flash
+   AI_PROVIDER=groq
+   GROQ_API_KEY=<your Groq key>
+   GROQ_MODEL=openai/gpt-oss-20b
    N8N_WEBHOOK_URL=<your n8nx test webhook, if you use it>
    N8N_NOTIFICATION_WEBHOOK_URL=<your n8n notification webhook>
    CORS_ORIGIN=https://<your-vercel-app>.vercel.app   # add this after step 3, then redeploy
@@ -124,8 +124,8 @@ anything at this project's scale (a card is required to enable it regardless).
    flyctl secrets set \
      DATABASE_URL="<your Neon/Supabase pooled connection string>" \
      JWT_SECRET="<a long random string, 32+ chars>" \
-     GEMINI_API_KEY="<your Gemini key>" \
-     GEMINI_MODEL="gemini-2.5-flash" \
+     GROQ_API_KEY="<your Groq key>" \
+     GROQ_MODEL="openai/gpt-oss-20b" \
      N8N_WEBHOOK_URL="<your n8n test webhook, if you use it>" \
      N8N_NOTIFICATION_WEBHOOK_URL="<your n8n notification webhook>" \
      CORS_ORIGIN="https://<your-vercel-app>.vercel.app"

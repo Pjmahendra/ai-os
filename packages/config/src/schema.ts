@@ -19,8 +19,8 @@ export const ConfigSchema = z.object({
         .string()
         .min(32),
     AI_PROVIDER: z
-        .enum(["gemini", "ollama"])
-        .default("gemini"),
+        .enum(["groq", "ollama"])
+        .default("groq"),
     OLLAMA_URL: z
         .string()
         .url()
@@ -30,14 +30,14 @@ export const ConfigSchema = z.object({
         .string()
         .min(1)
         .default("qwen3:4b"),
-    GEMINI_API_KEY: z
+    GROQ_API_KEY: z
         .string()
         .min(1),
 
-    GEMINI_MODEL: z
+    GROQ_MODEL: z
         .string()
         .min(1)
-        .default("gemini-2.5-flash"),
+        .default("openai/gpt-oss-20b"),
 
     // Gmail integration - all optional so a dev environment that
     // doesn't use the email assistant isn't forced to set up a Google

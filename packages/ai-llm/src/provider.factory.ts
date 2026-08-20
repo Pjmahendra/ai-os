@@ -1,7 +1,7 @@
 import { env } from "@ai-os/config";
 import type { LLMProvider } from "./types.js";
 import { OllamaProvider } from "./providers/ollama.provider.js";
-import { GeminiProvider } from "./providers/gemini.provider.js";
+import { GroqProvider } from "./providers/groq.provider.js";
 
 export type LLMMode = "auto" | "online" | "offline";
 
@@ -39,21 +39,21 @@ export function createLLMProvider(
   }
 
   if (mode === "online") {
-    if (!env.GEMINI_API_KEY) {
+    if (!env.GROQ_API_KEY) {
       throw new Error(
-        "GEMINI_API_KEY is required for online mode."
+        "GROQ_API_KEY is required for online mode."
       );
     }
 
-    return new GeminiProvider();
+    return new GroqProvider();
   }
 
-  if (!env.GEMINI_API_KEY) {
+  if (!env.GROQ_API_KEY) {
     return ollama;
   }
 
   return new FallbackProvider(
-    new GeminiProvider(),
+    new GroqProvider(),
     ollama
   );
 }
