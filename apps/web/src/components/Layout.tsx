@@ -1,5 +1,6 @@
 import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.js";
+import { NotificationBell } from "./NotificationBell.js";
 
 const NAV_ITEMS = [
   { to: "/", label: "Chat", end: true },
@@ -32,6 +33,7 @@ export function Layout() {
         </nav>
 
         <div className="user-menu">
+          <NotificationBell />
           <span className="user-email">{user?.email}</span>
           <button className="btn btn-ghost" onClick={logout}>
             Log out
