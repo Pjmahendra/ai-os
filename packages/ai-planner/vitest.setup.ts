@@ -6,4 +6,4 @@ process.env.DATABASE_URL ??=
   "postgresql://test:test@localhost:5432/test";
 process.env.JWT_SECRET ??=
   "test-secret-test-secret-test-secret-32chars";
-process.env.GEMINI_API_KEY ??= "test-key";
+process.env.GROQ_API_KEY ??= "test-key";
