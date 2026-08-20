@@ -79,6 +79,12 @@ export interface Tool {
   description: string;
 }
 
+export interface EmailAccount {
+  id: string;
+  email: string;
+  connectedAt: string;
+}
+
 export interface Notification {
   id: string;
   userId: string;

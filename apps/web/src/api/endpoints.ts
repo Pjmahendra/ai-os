@@ -1,16 +1,19 @@
-import { api } from "./client.js";
+import { api, getToken } from "./client.js";
 import type {
   AgentResponse,
   Automation,
   AutomationExecution,
   AuthResult,
   Conversation,
+  EmailAccount,
   Memory,
   Message,
   Notification,
   Tool,
   User
 } from "./types.js";
+
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 
 export const auth = {
   login: (email: string, password: string) =>
@@ -115,6 +118,23 @@ export const memories = {
 
 export const tools = {
   list: () => api.get<Tool[]>("/api/tools")
+};
+
+export const email = {
+  // A full-page redirect, not a fetch() call, so it can't carry an
+  // Authorization header - the JWT goes as a query param instead.
+  connectUrl: () =>
+    `${API_URL}/api/email/oauth/connect?token=${encodeURIComponent(
+      getToken() ?? ""
+    )}`,
+
+  accounts: () =>
+    api.get<{ success: boolean; account: EmailAccount | null }>(
+      "/api/email/accounts"
+    ),
+
+  disconnect: (id: string) =>
+    api.delete<{ success: boolean }>(`/api/email/accounts/${id}`)
 };
 
 export const notifications = {
