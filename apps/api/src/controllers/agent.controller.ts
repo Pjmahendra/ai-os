@@ -135,10 +135,18 @@ export async function runAgent(
         userId
       );
 
-    const responseMessage = formatAgentResponse(
-      plan,
-      execution
-    );
+    // "answer" plans carry no tool steps to execute, so there's
+    // nothing for formatAgentResponse to summarize — generate the
+    // actual reply here instead of falling back to plan.goal, which
+    // is only the planner's internal task description.
+    const responseMessage =
+      plan.intent === "answer" && plan.steps.length === 0
+        ? await aiPlanner.generateAnswer(
+            message,
+            memoryContext,
+            history
+          )
+        : formatAgentResponse(plan, execution);
 
     await addMessage(
       conversation.id,
