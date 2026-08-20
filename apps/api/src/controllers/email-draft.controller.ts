@@ -9,7 +9,8 @@ import {
   listDrafts,
   getDraft,
   updateDraft,
-  deleteDraft
+  deleteDraft,
+  sendDraft
 } from "../services/email-draft.service.js";
 
 export async function generateAIReplyController(
@@ -234,6 +235,38 @@ export async function updateDraftController(
         error instanceof Error
           ? error.message
           : "Failed to update draft"
+    });
+  }
+}
+
+export async function sendDraftController(
+  req: AuthRequest,
+  res: Response
+) {
+  try {
+    const userId = req.userId;
+    const id =
+      typeof req.params.id === "string" ? req.params.id : undefined;
+
+    if (!userId || !id) {
+      return res.status(400).json({
+        success: false,
+        error: "Draft id is required"
+      });
+    }
+
+    const draft = await sendDraft(userId, id);
+
+    return res.json({ success: true, draft });
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to send email"
     });
   }
 }
