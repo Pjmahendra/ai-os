@@ -108,18 +108,19 @@ describe("AIPlanner retry behavior", () => {
     expect(provider.requests).toHaveLength(2);
   });
 
-  it("throws after exhausting the retry when every attempt is invalid", async () => {
+  it("throws after exhausting the retries when every attempt is invalid", async () => {
     const { planner, provider } = plannerWith([
       "not json",
-      "still not json"
+      "still not json",
+      "nope, still not json"
     ]);
 
     await expect(
       planner.createPlan("hi")
     ).rejects.toThrow("Planner returned invalid JSON");
 
-    // One original attempt + one retry, no more.
-    expect(provider.requests).toHaveLength(2);
+    // One original attempt + two retries, no more.
+    expect(provider.requests).toHaveLength(3);
   });
 
   it("retries when the JSON is well-formed but fails plan validation", async () => {
@@ -144,7 +145,11 @@ describe("AIPlanner plan validation", () => {
       steps: []
     });
 
-    const { planner } = plannerWith([badIntent, badIntent]);
+    const { planner } = plannerWith([
+      badIntent,
+      badIntent,
+      badIntent
+    ]);
 
     await expect(
       planner.createPlan("hi")
