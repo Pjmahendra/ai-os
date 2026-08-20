@@ -1,7 +1,8 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useAuth } from "../auth/AuthContext.js";
-import { users } from "../api/endpoints.js";
+import { users, email } from "../api/endpoints.js";
 import { ApiError } from "../api/client.js";
+import type { EmailAccount } from "../api/types.js";
 
 // A representative subset — Intl.supportedValuesOf isn't available in
 // every browser runtime, so this list keeps the picker useful without
@@ -29,12 +30,55 @@ export function SettingsPage() {
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
 
+  const [emailAccount, setEmailAccount] = useState<EmailAccount | null>(
+    null
+  );
+  const [emailLoading, setEmailLoading] = useState(true);
+  const [emailError, setEmailError] = useState<string | null>(null);
+
+  const gmailStatus = new URLSearchParams(window.location.search).get(
+    "gmail"
+  );
+
   useEffect(() => {
     if (user) {
       setName(user.name ?? "");
       setTimezone(user.timezone);
     }
   }, [user]);
+
+  useEffect(() => {
+    loadEmailAccount();
+  }, []);
+
+  async function loadEmailAccount() {
+    setEmailLoading(true);
+    try {
+      const { account } = await email.accounts();
+      setEmailAccount(account);
+    } catch {
+      // Non-fatal — the connect button still works either way.
+    } finally {
+      setEmailLoading(false);
+    }
+  }
+
+  async function handleDisconnect(id: string) {
+    if (!confirm("Disconnect this Gmail account?")) {
+      return;
+    }
+
+    setEmailError(null);
+
+    try {
+      await email.disconnect(id);
+      setEmailAccount(null);
+    } catch (err) {
+      setEmailError(
+        err instanceof ApiError ? err.message : "Failed to disconnect"
+      );
+    }
+  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -97,6 +141,47 @@ export function SettingsPage() {
           {saving ? "Saving…" : "Save changes"}
         </button>
       </form>
+
+      <div className="card settings-form">
+        <h2 className="settings-section-title">Email assistant</h2>
+
+        {gmailStatus === "connected" && (
+          <div className="form-success">Gmail connected.</div>
+        )}
+        {gmailStatus === "error" && (
+          <div className="form-error">
+            Couldn't connect Gmail. Please try again.
+          </div>
+        )}
+        {emailError && <div className="form-error">{emailError}</div>}
+
+        {emailLoading ? (
+          <p className="muted">Loading…</p>
+        ) : emailAccount ? (
+          <div className="email-account-row">
+            <span>{emailAccount.email}</span>
+            <button
+              className="btn btn-danger"
+              onClick={() => handleDisconnect(emailAccount.id)}
+            >
+              Disconnect
+            </button>
+          </div>
+        ) : (
+          <>
+            <p className="muted">
+              Connect a Gmail account to let the assistant read your inbox
+              and draft replies for your review.
+            </p>
+            <a
+              className="btn btn-primary btn-block"
+              href={email.connectUrl()}
+            >
+              Connect Gmail
+            </a>
+          </>
+        )}
+      </div>
     </div>
   );
 }

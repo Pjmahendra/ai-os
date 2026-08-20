@@ -5,6 +5,7 @@ import { NotificationBell } from "./NotificationBell.js";
 const NAV_ITEMS = [
   { to: "/", label: "Chat", end: true },
   { to: "/automations", label: "Automations" },
+  { to: "/inbox", label: "Inbox" },
   { to: "/memory", label: "Memory" },
   { to: "/settings", label: "Settings" }
 ];

@@ -6,6 +6,7 @@ import { LoginPage } from "./pages/LoginPage.js";
 import { RegisterPage } from "./pages/RegisterPage.js";
 import { ChatPage } from "./pages/ChatPage.js";
 import { AutomationsPage } from "./pages/AutomationsPage.js";
+import { InboxPage } from "./pages/InboxPage.js";
 import { MemoryPage } from "./pages/MemoryPage.js";
 import { SettingsPage } from "./pages/SettingsPage.js";
 
@@ -20,6 +21,7 @@ export function App() {
           <Route element={<Layout />}>
             <Route path="/" element={<ChatPage />} />
             <Route path="/automations" element={<AutomationsPage />} />
+            <Route path="/inbox" element={<InboxPage />} />
             <Route path="/memory" element={<MemoryPage />} />
             <Route path="/settings" element={<SettingsPage />} />
           </Route>
