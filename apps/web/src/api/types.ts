@@ -109,6 +109,23 @@ export interface EmailThread {
   messages: EmailMessage[];
 }
 
+export interface EmailDraft {
+  id: string;
+  userId: string;
+  emailAccountId: string;
+  threadId: string | null;
+  inReplyToMessageId: string | null;
+  to: string;
+  subject: string;
+  body: string;
+  status: "draft" | "sent" | "failed" | string;
+  aiGenerated: boolean;
+  sentAt: string | null;
+  error: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Notification {
   id: string;
   userId: string;

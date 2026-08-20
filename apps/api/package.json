@@ -13,6 +13,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@ai-os/ai-email": "^1.0.0",
     "@ai-os/ai-planner": "^1.0.0",
     "@ai-os/ai-runtime": "^1.0.0",
     "@ai-os/ai-tools": "^1.0.0",

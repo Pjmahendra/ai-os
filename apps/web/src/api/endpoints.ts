@@ -6,6 +6,7 @@ import type {
   AuthResult,
   Conversation,
   EmailAccount,
+  EmailDraft,
   EmailThread,
   EmailThreadSummary,
   Memory,
@@ -153,6 +154,34 @@ export const email = {
     api.get<{ success: boolean; thread: EmailThread }>(
       `/api/email/threads/${id}`
     )
+};
+
+export const drafts = {
+  aiReply: (threadId: string, instruction: string) =>
+    api.post<{ success: boolean; draft: EmailDraft }>(
+      "/api/email/drafts/ai-reply",
+      { threadId, instruction }
+    ),
+
+  aiNew: (to: string, instruction: string) =>
+    api.post<{ success: boolean; draft: EmailDraft }>(
+      "/api/email/drafts/ai-new",
+      { to, instruction }
+    ),
+
+  list: () =>
+    api.get<{ success: boolean; drafts: EmailDraft[] }>(
+      "/api/email/drafts"
+    ),
+
+  update: (
+    id: string,
+    data: { to?: string; subject?: string; body?: string }
+  ) =>
+    api.patch<{ success: boolean }>(`/api/email/drafts/${id}`, data),
+
+  delete: (id: string) =>
+    api.delete<{ success: boolean }>(`/api/email/drafts/${id}`)
 };
 
 export const notifications = {

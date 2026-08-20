@@ -1,7 +1,12 @@
 import { useEffect, useState } from "react";
-import { email as emailApi } from "../api/endpoints.js";
+import { email as emailApi, drafts as draftsApi } from "../api/endpoints.js";
 import { ApiError } from "../api/client.js";
-import type { EmailMessage, EmailThread, EmailThreadSummary } from "../api/types.js";
+import type {
+  EmailDraft,
+  EmailMessage,
+  EmailThread,
+  EmailThreadSummary
+} from "../api/types.js";
 
 export function InboxPage() {
   const [threads, setThreads] = useState<EmailThreadSummary[]>([]);
@@ -13,6 +18,11 @@ export function InboxPage() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [thread, setThread] = useState<EmailThread | null>(null);
   const [threadLoading, setThreadLoading] = useState(false);
+
+  const [instruction, setInstruction] = useState("");
+  const [draft, setDraft] = useState<EmailDraft | null>(null);
+  const [draftGenerating, setDraftGenerating] = useState(false);
+  const [draftError, setDraftError] = useState<string | null>(null);
 
   async function load() {
     setLoading(true);
@@ -62,6 +72,9 @@ export function InboxPage() {
     setExpandedId(id);
     setThread(null);
     setThreadLoading(true);
+    setInstruction("");
+    setDraft(null);
+    setDraftError(null);
 
     try {
       const { thread: full } = await emailApi.thread(id);
@@ -70,6 +83,29 @@ export function InboxPage() {
       setError(err instanceof ApiError ? err.message : "Failed to load thread");
     } finally {
       setThreadLoading(false);
+    }
+  }
+
+  async function generateDraft(threadId: string) {
+    if (!instruction.trim()) {
+      return;
+    }
+
+    setDraftGenerating(true);
+    setDraftError(null);
+
+    try {
+      const { draft: result } = await draftsApi.aiReply(
+        threadId,
+        instruction
+      );
+      setDraft(result);
+    } catch (err) {
+      setDraftError(
+        err instanceof ApiError ? err.message : "Failed to generate draft"
+      );
+    } finally {
+      setDraftGenerating(false);
     }
   }
 
@@ -113,9 +149,81 @@ export function InboxPage() {
                   {threadLoading ? (
                     <p className="muted">Loading…</p>
                   ) : (
-                    thread?.messages.map((m) => (
-                      <ThreadMessage key={m.id} message={m} />
-                    ))
+                    <>
+                      {thread?.messages.map((m) => (
+                        <ThreadMessage key={m.id} message={m} />
+                      ))}
+
+                      <div className="ai-reply-box">
+                        <label>
+                          Draft AI reply
+                          <textarea
+                            className="ai-reply-instruction"
+                            value={instruction}
+                            onChange={(e) => setInstruction(e.target.value)}
+                            placeholder="e.g. Thank them and say I'll follow up tomorrow"
+                            rows={2}
+                          />
+                        </label>
+
+                        <button
+                          className="btn btn-primary"
+                          disabled={draftGenerating || !instruction.trim()}
+                          onClick={() => generateDraft(t.id)}
+                        >
+                          {draftGenerating
+                            ? "Generating…"
+                            : "Generate AI reply"}
+                        </button>
+
+                        {draftError && (
+                          <div className="form-error">{draftError}</div>
+                        )}
+
+                        {draft && (
+                          <div className="draft-editor">
+                            <label>
+                              To
+                              <input
+                                value={draft.to}
+                                onChange={(e) =>
+                                  setDraft({ ...draft, to: e.target.value })
+                                }
+                              />
+                            </label>
+                            <label>
+                              Subject
+                              <input
+                                value={draft.subject}
+                                onChange={(e) =>
+                                  setDraft({
+                                    ...draft,
+                                    subject: e.target.value
+                                  })
+                                }
+                              />
+                            </label>
+                            <label>
+                              Body
+                              <textarea
+                                className="draft-editor-body"
+                                value={draft.body}
+                                onChange={(e) =>
+                                  setDraft({
+                                    ...draft,
+                                    body: e.target.value
+                                  })
+                                }
+                                rows={8}
+                              />
+                            </label>
+                            <p className="muted">
+                              Draft saved. Editing and sending come next.
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </>
                   )}
                 </div>
               )}

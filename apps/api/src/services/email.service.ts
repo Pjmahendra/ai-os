@@ -84,6 +84,10 @@ export async function listInboxThreads(
 
 export interface EmailMessage {
   id: string;
+  // The RFC "Message-ID" header - distinct from Gmail's internal `id`
+  // above. Sending a reply needs *this* value in In-Reply-To/References
+  // for Gmail to thread it correctly, not Gmail's own id.
+  messageId: string;
   from: string;
   to: string;
   subject: string;
@@ -148,6 +152,7 @@ export async function getThread(
 
     return {
       id: m.id!,
+      messageId: getHeader(headers, "Message-ID"),
       from: getHeader(headers, "From"),
       to: getHeader(headers, "To"),
       subject: getHeader(headers, "Subject"),
