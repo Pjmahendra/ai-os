@@ -138,12 +138,16 @@ export async function runAgent(
         userId
       );
 
-      // "answer" plans carry no tool steps to execute, so there's
-      // nothing for formatAgentResponse to summarize — generate the
-      // actual reply here instead of falling back to plan.goal, which
-      // is only the planner's internal task description.
+      // By the planner's own contract, intent "answer" means no
+      // external action is required — any steps present on an
+      // "answer" plan are a planner slip (e.g. a stray no-op action
+      // with no tool), not something formatAgentResponse can
+      // summarize. Key off intent alone, not steps.length: a
+      // non-empty-but-vacuous steps array would otherwise fall
+      // through to formatAgentResponse's own plan.goal fallback and
+      // leak the same internal task description to the user.
       responseMessage =
-        plan.intent === "answer" && plan.steps.length === 0
+        plan.intent === "answer"
           ? await aiPlanner.generateAnswer(
               message,
               memoryContext,
