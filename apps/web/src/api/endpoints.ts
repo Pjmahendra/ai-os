@@ -6,6 +6,8 @@ import type {
   AuthResult,
   Conversation,
   EmailAccount,
+  EmailThread,
+  EmailThreadSummary,
   Memory,
   Message,
   Notification,
@@ -134,7 +136,23 @@ export const email = {
     ),
 
   disconnect: (id: string) =>
-    api.delete<{ success: boolean }>(`/api/email/accounts/${id}`)
+    api.delete<{ success: boolean }>(`/api/email/accounts/${id}`),
+
+  threads: (pageToken?: string) =>
+    api.get<{
+      success: boolean;
+      threads: EmailThreadSummary[];
+      nextPageToken: string | null;
+    }>(
+      pageToken
+        ? `/api/email/threads?pageToken=${encodeURIComponent(pageToken)}`
+        : "/api/email/threads"
+    ),
+
+  thread: (id: string) =>
+    api.get<{ success: boolean; thread: EmailThread }>(
+      `/api/email/threads/${id}`
+    )
 };
 
 export const notifications = {

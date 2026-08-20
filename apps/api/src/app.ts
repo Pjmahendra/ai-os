@@ -16,6 +16,7 @@ import automationRoutes from "./routes/automation.routes.js";
 import conversationRoutes from "./routes/conversation.routes.js";
 import notificationRoutes from "./routes/notification.routes.js";
 import emailOAuthRoutes from "./routes/email-oauth.routes.js";
+import emailRoutes from "./routes/email.routes.js";
 import { startScheduler } from "./services/scheduler.js";
 const app = express();
 
@@ -107,6 +108,10 @@ app.use(
 app.use(
   "/api/email",
   emailOAuthRoutes
+);
+app.use(
+  "/api/email",
+  emailRoutes
 );
 
 // Error-handling middleware must be registered after all routes —

@@ -85,6 +85,30 @@ export interface EmailAccount {
   connectedAt: string;
 }
 
+export interface EmailThreadSummary {
+  id: string;
+  snippet: string;
+  subject: string;
+  from: string;
+  date: string;
+  unread: boolean;
+}
+
+export interface EmailMessage {
+  id: string;
+  from: string;
+  to: string;
+  subject: string;
+  date: string;
+  bodyText: string | null;
+  bodyHtml: string | null;
+}
+
+export interface EmailThread {
+  id: string;
+  messages: EmailMessage[];
+}
+
 export interface Notification {
   id: string;
   userId: string;
