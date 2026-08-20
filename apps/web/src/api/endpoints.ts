@@ -181,7 +181,12 @@ export const drafts = {
     api.patch<{ success: boolean }>(`/api/email/drafts/${id}`, data),
 
   delete: (id: string) =>
-    api.delete<{ success: boolean }>(`/api/email/drafts/${id}`)
+    api.delete<{ success: boolean }>(`/api/email/drafts/${id}`),
+
+  send: (id: string) =>
+    api.post<{ success: boolean; draft: EmailDraft }>(
+      `/api/email/drafts/${id}/send`
+    )
 };
 
 export const notifications = {

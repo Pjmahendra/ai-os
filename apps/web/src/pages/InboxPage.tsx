@@ -23,6 +23,10 @@ export function InboxPage() {
   const [draft, setDraft] = useState<EmailDraft | null>(null);
   const [draftGenerating, setDraftGenerating] = useState(false);
   const [draftError, setDraftError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
 
   async function load() {
     setLoading(true);
@@ -75,6 +79,8 @@ export function InboxPage() {
     setInstruction("");
     setDraft(null);
     setDraftError(null);
+    setSaved(false);
+    setSendError(null);
 
     try {
       const { thread: full } = await emailApi.thread(id);
@@ -100,12 +106,76 @@ export function InboxPage() {
         instruction
       );
       setDraft(result);
+      setSaved(false);
+      setSendError(null);
     } catch (err) {
       setDraftError(
         err instanceof ApiError ? err.message : "Failed to generate draft"
       );
     } finally {
       setDraftGenerating(false);
+    }
+  }
+
+  async function saveDraft() {
+    if (!draft) {
+      return;
+    }
+
+    setSaving(true);
+    setSendError(null);
+
+    try {
+      await draftsApi.update(draft.id, {
+        to: draft.to,
+        subject: draft.subject,
+        body: draft.body
+      });
+      setSaved(true);
+    } catch (err) {
+      setSendError(
+        err instanceof ApiError ? err.message : "Failed to save draft"
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function sendDraftNow() {
+    if (!draft) {
+      return;
+    }
+
+    if (
+      !confirm(
+        `Send this email to ${draft.to}? This cannot be undone.`
+      )
+    ) {
+      return;
+    }
+
+    setSending(true);
+    setSendError(null);
+
+    try {
+      // Save any unsaved edits first, so what's sent matches what's
+      // on screen - the backend also always sends its own stored
+      // to/subject/body, never something passed fresh from the
+      // client, but this keeps the two in sync.
+      await draftsApi.update(draft.id, {
+        to: draft.to,
+        subject: draft.subject,
+        body: draft.body
+      });
+
+      const { draft: sent } = await draftsApi.send(draft.id);
+      setDraft(sent);
+    } catch (err) {
+      setSendError(
+        err instanceof ApiError ? err.message : "Failed to send email"
+      );
+    } finally {
+      setSending(false);
     }
   }
 
@@ -182,44 +252,88 @@ export function InboxPage() {
 
                         {draft && (
                           <div className="draft-editor">
-                            <label>
-                              To
-                              <input
-                                value={draft.to}
-                                onChange={(e) =>
-                                  setDraft({ ...draft, to: e.target.value })
-                                }
-                              />
-                            </label>
-                            <label>
-                              Subject
-                              <input
-                                value={draft.subject}
-                                onChange={(e) =>
-                                  setDraft({
-                                    ...draft,
-                                    subject: e.target.value
-                                  })
-                                }
-                              />
-                            </label>
-                            <label>
-                              Body
-                              <textarea
-                                className="draft-editor-body"
-                                value={draft.body}
-                                onChange={(e) =>
-                                  setDraft({
-                                    ...draft,
-                                    body: e.target.value
-                                  })
-                                }
-                                rows={8}
-                              />
-                            </label>
-                            <p className="muted">
-                              Draft saved. Editing and sending come next.
-                            </p>
+                            {draft.status === "sent" ? (
+                              <div className="form-success">
+                                Sent{" "}
+                                {draft.sentAt &&
+                                  new Date(
+                                    draft.sentAt
+                                  ).toLocaleString()}
+                                .
+                              </div>
+                            ) : (
+                              <>
+                                <label>
+                                  To
+                                  <input
+                                    value={draft.to}
+                                    onChange={(e) => {
+                                      setDraft({
+                                        ...draft,
+                                        to: e.target.value
+                                      });
+                                      setSaved(false);
+                                    }}
+                                  />
+                                </label>
+                                <label>
+                                  Subject
+                                  <input
+                                    value={draft.subject}
+                                    onChange={(e) => {
+                                      setDraft({
+                                        ...draft,
+                                        subject: e.target.value
+                                      });
+                                      setSaved(false);
+                                    }}
+                                  />
+                                </label>
+                                <label>
+                                  Body
+                                  <textarea
+                                    className="draft-editor-body"
+                                    value={draft.body}
+                                    onChange={(e) => {
+                                      setDraft({
+                                        ...draft,
+                                        body: e.target.value
+                                      });
+                                      setSaved(false);
+                                    }}
+                                    rows={8}
+                                  />
+                                </label>
+
+                                {sendError && (
+                                  <div className="form-error">
+                                    {sendError}
+                                  </div>
+                                )}
+                                {saved && (
+                                  <div className="form-success">
+                                    Draft saved.
+                                  </div>
+                                )}
+
+                                <div className="draft-editor-actions">
+                                  <button
+                                    className="btn"
+                                    onClick={saveDraft}
+                                    disabled={saving || sending}
+                                  >
+                                    {saving ? "Saving…" : "Save draft"}
+                                  </button>
+                                  <button
+                                    className="btn btn-primary"
+                                    onClick={sendDraftNow}
+                                    disabled={saving || sending}
+                                  >
+                                    {sending ? "Sending…" : "Send"}
+                                  </button>
+                                </div>
+                              </>
+                            )}
                           </div>
                         )}
                       </div>

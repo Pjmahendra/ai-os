@@ -680,6 +680,11 @@ select {
   padding: 14px;
 }
 
+.draft-editor-actions {
+  display: flex;
+  gap: 10px;
+}
+
 /* Notifications */
 
 .notification-bell {

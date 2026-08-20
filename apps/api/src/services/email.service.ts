@@ -164,3 +164,32 @@ export async function getThread(
 
   return { id: data.id!, messages };
 }
+
+// The one function in this whole service that actually sends mail.
+// Every other function here only ever reads. This is called from
+// exactly one place: email-draft.service's sendDraft, itself only
+// reachable from the explicit, user-confirmed POST /drafts/:id/send
+// route - never from an automation, a scheduler tick, or the AI
+// drafter, which has no access to this function at all.
+export async function sendRawMessage(
+  userId: string,
+  raw: string,
+  threadId?: string
+): Promise<{ id: string }> {
+  const accessToken = await getValidAccessToken(userId);
+  const gmail = getGmailClient(accessToken);
+
+  const { data } = await gmail.users.messages.send({
+    userId: "me",
+    requestBody: {
+      raw,
+      ...(threadId ? { threadId } : {})
+    }
+  });
+
+  if (!data.id) {
+    throw new Error("Gmail did not return a message id for the sent email.");
+  }
+
+  return { id: data.id };
+}

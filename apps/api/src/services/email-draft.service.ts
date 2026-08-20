@@ -1,7 +1,12 @@
 import { AIEmailDrafter } from "@ai-os/ai-email";
 import { prisma } from "../database/prisma.js";
+import { buildRawMessage } from "../utils/mime.js";
 import { getAccountForUser } from "./email-account.service.js";
-import { getThread, type EmailMessage } from "./email.service.js";
+import {
+  getThread,
+  sendRawMessage,
+  type EmailMessage
+} from "./email.service.js";
 
 const drafter = new AIEmailDrafter();
 
@@ -145,4 +150,66 @@ export async function deleteDraft(userId: string, id: string) {
   return prisma.emailDraft.deleteMany({
     where: { id, userId }
   });
+}
+
+// The single, genuinely irreversible action in this whole feature.
+// No automation, scheduler, or AI tool has any path to this function
+// or to sendRawMessage underneath it - it only ever runs from an
+// explicit, user-confirmed POST /drafts/:id/send request.
+export async function sendDraft(userId: string, draftId: string) {
+  const draft = await prisma.emailDraft.findFirst({
+    where: { id: draftId, userId }
+  });
+
+  if (!draft) {
+    throw new Error("Draft not found.");
+  }
+
+  if (draft.status === "sent") {
+    throw new Error("This draft has already been sent.");
+  }
+
+  const raw = buildRawMessage({
+    to: draft.to,
+    subject: draft.subject,
+    body: draft.body,
+    ...(draft.inReplyToMessageId
+      ? { inReplyTo: draft.inReplyToMessageId }
+      : {})
+  });
+
+  // The send attempt happens here, and only here. Everything after
+  // this point is just recording what happened - a failure updating
+  // the DB record must never be able to look like "the send never
+  // happened, try again", since Gmail may have already accepted the
+  // message. So: capture whether the send itself failed, then do
+  // exactly one status update reflecting that - never retry the send
+  // and never let a later DB error relabel a real success as failed.
+  let sendError: string | null = null;
+
+  try {
+    await sendRawMessage(
+      userId,
+      raw,
+      draft.threadId ?? undefined
+    );
+  } catch (error) {
+    sendError =
+      error instanceof Error
+        ? error.message
+        : "Failed to send email";
+  }
+
+  const updated = await prisma.emailDraft.update({
+    where: { id: draft.id },
+    data: sendError
+      ? { status: "failed", error: sendError }
+      : { status: "sent", sentAt: new Date(), error: null }
+  });
+
+  if (sendError) {
+    throw new Error(sendError);
+  }
+
+  return updated;
 }
