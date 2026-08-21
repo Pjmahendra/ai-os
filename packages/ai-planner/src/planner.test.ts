@@ -200,3 +200,62 @@ describe("AIPlanner prompt context", () => {
     expect(prompt).toContain("earlier message");
   });
 });
+
+describe("AIPlanner.generateAnswer", () => {
+  it("returns the model's plain-text content", async () => {
+    const { planner } = plannerWith(["Hi! 2 + 2 is 4."]);
+
+    const answer = await planner.generateAnswer("what is 2+2?");
+
+    expect(answer).toBe("Hi! 2 + 2 is 4.");
+  });
+
+  it("tells the model it can never claim to have sent an email", async () => {
+    const { planner, provider } = plannerWith(["ok"]);
+
+    await planner.generateAnswer("send that email");
+
+    const prompt = provider.requests[0]?.messages.find(
+      (m) => m.role === "system"
+    )?.content;
+
+    expect(prompt).toContain("NEVER send");
+    expect(prompt).toContain("Inbox page");
+  });
+
+  it("includes memories and conversation history in the prompt", async () => {
+    const { planner, provider } = plannerWith(["ok"]);
+
+    await planner.generateAnswer(
+      "what did I ask before?",
+      ["User's timezone is IST"],
+      [{ role: "user", content: "earlier question" }]
+    );
+
+    const prompt = provider.requests[0]?.messages.find(
+      (m) => m.role === "system"
+    )?.content;
+
+    expect(prompt).toContain("User's timezone is IST");
+    expect(prompt).toContain("earlier question");
+  });
+
+  it("throws when the model returns invalid content", async () => {
+    const provider = new FakeLLMProvider([""]);
+    const runtime = new AIRuntime(provider);
+    const planner = new AIPlanner(runtime);
+
+    // Force an invalid response shape by having the provider return
+    // something that isn't a usable string.
+    provider.chat = async () => ({
+      content: undefined as unknown as string,
+      model: "fake-model"
+    });
+
+    await expect(
+      planner.generateAnswer("hi")
+    ).rejects.toThrow(
+      "AI planner did not return valid text content"
+    );
+  });
+});
