@@ -173,6 +173,103 @@ function summarizeStep(
     case "n8n.execute":
       return "Ran the workflow successfully.";
 
+    case "email.listThreads": {
+      const threads = Array.isArray(step.result)
+        ? (step.result as Array<Record<string, unknown>>)
+        : [];
+
+      if (threads.length === 0) {
+        return "Your inbox has no messages right now.";
+      }
+
+      const lines = threads
+        .slice(0, 5)
+        .map(
+          (t) =>
+            `"${t.subject ?? "(no subject)"}" from ${
+              t.from ?? "an unknown sender"
+            }`
+        );
+
+      return `You have ${threads.length} recent thread${
+        threads.length === 1 ? "" : "s"
+      }: ${lines.join("; ")}.`;
+    }
+
+    case "email.readThread": {
+      const messages = Array.isArray(
+        (step.result as { messages?: unknown } | undefined)?.messages
+      )
+        ? ((step.result as { messages: Array<Record<string, unknown>> })
+            .messages)
+        : [];
+
+      const last = messages[messages.length - 1];
+
+      if (!last) {
+        return "That thread doesn't have any messages.";
+      }
+
+      const body =
+        typeof last.bodyText === "string"
+          ? last.bodyText
+          : "(no plain-text body available)";
+      const trimmed =
+        body.length > 500 ? `${body.slice(0, 500)}…` : body;
+
+      return `From: ${last.from ?? "unknown"}\nSubject: ${
+        last.subject ?? "(no subject)"
+      }\n\n${trimmed}`;
+    }
+
+    case "email.draftReply":
+    case "email.draftNew": {
+      const draft = result as {
+        to?: string;
+        subject?: string;
+        body?: string;
+      };
+
+      return (
+        `Draft saved${draft.to ? ` to ${draft.to}` : ""} — ` +
+        `Subject: "${draft.subject ?? ""}"\n\n${draft.body ?? ""}\n\n` +
+        "Review and send it from the Inbox page when you're ready — " +
+        "I can't send it for you."
+      );
+    }
+
+    case "email.listDrafts": {
+      const drafts = Array.isArray(step.result)
+        ? (step.result as Array<Record<string, unknown>>)
+        : [];
+
+      if (drafts.length === 0) {
+        return "You don't have any saved email drafts.";
+      }
+
+      const lines = drafts
+        .slice(0, 5)
+        .map(
+          (d) =>
+            `"${d.subject ?? "(no subject)"}" to ${d.to ?? "unknown"} (${
+              d.status ?? "draft"
+            })`
+        );
+
+      return `You have ${drafts.length} draft${
+        drafts.length === 1 ? "" : "s"
+      }: ${lines.join("; ")}.`;
+    }
+
+    case "email.updateDraft":
+      return (
+        "Updated that draft. Review and send it from the Inbox " +
+        "page when you're ready."
+      );
+
+    case "email.deleteDraft":
+      return "Deleted that draft.";
+
     default:
       return step.tool
         ? `Ran "${step.tool}" successfully.`

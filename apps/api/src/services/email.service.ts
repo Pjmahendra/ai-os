@@ -82,6 +82,78 @@ export async function listInboxThreads(
   };
 }
 
+export interface ThreadMatchCriteria {
+  readonly subject?: string;
+  readonly from?: string;
+}
+
+// Case-insensitive substring matching against subject/from, mirroring
+// how automation.toggle resolves an automation by exact name rather
+// than an opaque id: chat conversation history only ever retains the
+// human-readable reply text, never a raw threadId, so a thread the
+// model needs to act on in a *later* turn has to be findable by
+// something a human would naturally describe it by.
+export function matchThreadsByCriteria(
+  threads: readonly ThreadSummary[],
+  criteria: ThreadMatchCriteria
+): ThreadSummary[] {
+  if (!criteria.subject && !criteria.from) {
+    return [];
+  }
+
+  return threads.filter((t) => {
+    const subjectMatches = criteria.subject
+      ? t.subject
+          .toLowerCase()
+          .includes(criteria.subject.toLowerCase())
+      : true;
+
+    const fromMatches = criteria.from
+      ? t.from
+          .toLowerCase()
+          .includes(criteria.from.toLowerCase())
+      : true;
+
+    return subjectMatches && fromMatches;
+  });
+}
+
+// Resolves a thread by subject/sender instead of requiring the
+// caller to already know its id. Throws (rather than guessing) on
+// zero or multiple matches, same as automation.toggle's handling of
+// an ambiguous automation name.
+export async function findThreadId(
+  userId: string,
+  criteria: ThreadMatchCriteria
+): Promise<string> {
+  if (!criteria.subject && !criteria.from) {
+    throw new Error(
+      "subject and/or from is required to find a thread"
+    );
+  }
+
+  const { threads } = await listInboxThreads(userId, {
+    maxResults: 50
+  });
+
+  const matches = matchThreadsByCriteria(threads, criteria);
+
+  if (matches.length === 0) {
+    throw new Error(
+      "No matching email thread was found in the recent inbox"
+    );
+  }
+
+  if (matches.length > 1) {
+    throw new Error(
+      `${matches.length} matching threads were found - be more specific ` +
+        `(e.g. include more of the exact subject or sender)`
+    );
+  }
+
+  return matches[0]!.id;
+}
+
 export interface EmailMessage {
   id: string;
   // The RFC "Message-ID" header - distinct from Gmail's internal `id`

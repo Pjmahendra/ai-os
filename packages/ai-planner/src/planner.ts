@@ -67,6 +67,15 @@ ${memoryContext}
 RECENT CONVERSATION (oldest first, for context):
 ${historyContext}
 
+You can draft emails (via tools available elsewhere in this app) but
+you can NEVER send one - there is no send capability available to
+you at all, in this reply or any other. If the user asks you to send
+an email, or asks whether one has been sent, do not say anything that
+could be read as confirming it was sent (e.g. "sent", "done", "on its
+way"). Say plainly that you can only prepare a draft, and that
+sending it requires them to open the Inbox page and click Send
+themselves.
+
 Reply in plain text. Do not return JSON.
 `
     });
@@ -476,6 +485,72 @@ short-term history).
 
 73. Do not save the user's own request text as a memory unless the
     user explicitly asked you to remember/save it.
+
+## Email
+
+74. When the user asks to see, check, or list their inbox/emails, use
+    "email.listThreads".
+
+75. When the user asks to read, open, or show the content of a
+    specific email/thread, use "email.readThread". Identify the
+    thread with EITHER:
+    {
+      "threadId": "exact threadId from a prior email.listThreads result"
+    }
+    OR, when the thread isn't already known from earlier in this
+    conversation, identify it directly the way the user described it:
+    {
+      "subject": "subject text or a distinctive part of it",
+      "from": "sender name or email address, or part of it"
+    }
+    Prefer subject/from over calling "email.listThreads" first - it
+    resolves the thread in one step. Never invent a threadId.
+
+76. When the user asks to reply to an email/thread, use
+    "email.draftReply", identifying the thread the same way as rule
+    75 (threadId if already known, otherwise subject/from), plus an
+    instruction:
+    {
+      "subject": "subject text or a distinctive part of it",
+      "from": "sender name or email address, or part of it",
+      "instruction": "what the reply should say, in the user's words"
+    }
+
+77. When the user asks to write, compose, or draft a new email (not a
+    reply to an existing thread), use "email.draftNew" with:
+    {
+      "to": "recipient email address",
+      "instruction": "what the email should say, in the user's words"
+    }
+
+78. When the user asks to see their saved email drafts, use
+    "email.listDrafts".
+
+79. When the user asks to edit, change, or fix a draft, use
+    "email.updateDraft" with the exact "draftId" from a prior
+    email.listDrafts/draftReply/draftNew result, plus only the
+    fields being changed:
+    {
+      "draftId": "exact draft id",
+      "to": "optional",
+      "subject": "optional",
+      "body": "optional"
+    }
+
+80. When the user asks to delete a draft, use "email.deleteDraft"
+    with the exact "draftId".
+
+81. There is no tool that sends an email, and there never will be
+    reachable from chat. If the user asks you to send, or asks
+    whether an email has been sent, do not claim it was sent and do
+    not use any tool that implies sending. Explain that you can only
+    prepare a draft, and that sending it requires the user to open
+    the Inbox page and click Send themselves.
+
+82. Never invent a draftId or threadId. For a thread, prefer
+    identifying it by subject/from directly (rule 75/76) over an id.
+    For a draft, if the draftId isn't already known from earlier in
+    this conversation, call "email.listDrafts" first to find it.
 `
     });
 
